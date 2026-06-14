@@ -36,14 +36,4 @@ nbdist/
 .env
 *.env
 application-local.properties
-
-
-# Sensitive config — never commit
-src/main/resources/application.properties
 src/main/resources/application-*.properties
-
-# Local env files
-.env
-*.env
-application-local.properties
-src/main/resources/application.properties
