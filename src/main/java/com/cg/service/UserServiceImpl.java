@@ -62,28 +62,34 @@ public class UserServiceImpl implements UserService {
     // ──────────────────────────────────────────────────
     @Override
     public UserResponseDTO createUser(UserRequestDTO request) {
+
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new IllegalArgumentException("Password is required");
         }
 
-        // Check for duplicate email (users.email has unique constraint)
+        // Check for duplicate email
         userRepo.findByEmail(request.getEmail()).ifPresent(u -> {
             throw new DuplicateEmailException(
                     "Email already registered: " + request.getEmail());
         });
-
-        Address address = addressRepo.findById(request.getAddressId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Address not found with id: " + request.getAddressId()));
 
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.USER);
-        user.setAddress(address);
-        user.setBalance(BigDecimal.ZERO);  // new users start with zero balance
+        user.setBalance(BigDecimal.ZERO);
         user.setCreatedAt(LocalDateTime.now());
+
+        // Address is optional during registration
+        if (request.getAddressId() != null) {
+
+            Address address = addressRepo.findById(request.getAddressId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Address not found with id: " + request.getAddressId()));
+
+            user.setAddress(address);
+        }
 
         return toResponseDTO(userRepo.save(user));
     }
